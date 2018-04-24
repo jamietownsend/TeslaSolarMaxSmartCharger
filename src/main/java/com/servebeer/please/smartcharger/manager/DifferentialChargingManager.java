@@ -13,49 +13,55 @@ public class DifferentialChargingManager implements IChargingManager {
 
     private Logger logger = Logger.getLogger(IChargingManager.class.getName());
 
-    // number of Watts of power to "reserve" for other usage.
-    private int powerBuffer = 2000;
-    private int teslaPower = 0;
-
     private boolean wasAtSolarmaxArray = true;
 
+    private DifferentialChargingManagerStatus status = new DifferentialChargingManagerStatus();
 
     @Override
     public void autoconfigureCharging(TeslaCommunicator teslaCommunicator, SolarmaxArrayCommunicator solarmaxArrayCommunicator) throws ApiException {
 
-        // figure out how much the SolarMax array is generating
-        int currentlyGeneratedPower = solarmaxArrayCommunicator.getCurrentlyGeneratedPower();
+        DifferentialChargingManagerStatus newStatus = new DifferentialChargingManagerStatus();
 
-        logger.info("  SolarMax is generating: " + currentlyGeneratedPower);
-        logger.info("  Power buffer: " + powerBuffer);
+        // figure out how much the SolarMax array is generating
+        newStatus.setGeneratedPower(solarmaxArrayCommunicator.getCurrentlyGeneratedPower());
+
+        logger.info("  SolarMax is generating: " + newStatus.getGeneratedPower());
+        logger.info("  Power buffer: " + newStatus.getPowerBuffer());
 
         // figure out if the vehicle is at the charging station
-        boolean locatedAtSolarmaxArray = VehicleLocator.isLocatedAtSolarmaxArray(teslaCommunicator, solarmaxArrayCommunicator);
-        logger.info("  Tesla is at home: " + locatedAtSolarmaxArray);
+        newStatus.setLocatedAtSolarmaxArray(VehicleLocator.isLocatedAtSolarmaxArray(teslaCommunicator, solarmaxArrayCommunicator));
+        logger.info("  Tesla is at home: " + newStatus.isLocatedAtSolarmaxArray());
 
-        if (locatedAtSolarmaxArray) {
+        if (newStatus.isLocatedAtSolarmaxArray()) {
             // figure out how much the Tesla is drawing
-            teslaPower = teslaCommunicator.getChargerPower();
-            boolean isCharging = teslaCommunicator.isCharging();
-            Integer batteryLevel = teslaCommunicator.getBatteryLevel();
-            Integer chargeLimit = teslaCommunicator.getChargeLimit();
+            newStatus.setConnected(teslaCommunicator.isConnected());
+            newStatus.setCharging(teslaCommunicator.isCharging());
+            newStatus.setTeslaPowerDraw(teslaCommunicator.getChargerPower());
+            newStatus.setBatteryLevel(teslaCommunicator.getBatteryLevel());
+            newStatus.setChargeLimit(teslaCommunicator.getChargeLimit());
 
-            logger.info("  Tesla battery level: " + batteryLevel);
-            logger.info("  Tesla charge limit: " + chargeLimit);
-            logger.info("  Tesla is charging: " + isCharging);
-            logger.info("  Tesla consumption: " + teslaPower);
+            logger.info("  Tesla is connected: " + newStatus.isConnected());
+            logger.info("  Tesla is charging: " + newStatus.isCharging());
+            logger.info("  Tesla battery level: " + newStatus.getBatteryLevel());
+            logger.info("  Tesla charge limit: " + newStatus.getChargeLimit());
+            logger.info("  Tesla consumption: " + newStatus.getTeslaPowerDraw());
 
-            if (currentlyGeneratedPower < teslaPower + powerBuffer) {
-                if (isCharging) {
+            if (newStatus.getGeneratedPower() < newStatus.getTeslaPowerDraw() + newStatus.getPowerBuffer()) {
+                if (newStatus.isCharging()) {
                     logger.info("  Stopping charging...");
                     teslaCommunicator.stopCharging();
                 }
             } else {
-                // if the current battery level is more than 10% unter the charge limit and it's not charging
-                if (batteryLevel < chargeLimit - 10 && !isCharging) {
-                    if (batteryLevel < teslaCommunicator.getBatteryLevel() + 5)
-                        logger.info("  Starting charging...");
-                    teslaCommunicator.startCharging();
+                // if it's not currently charging
+                if (!newStatus.isCharging()) {
+                    // if the current battery level is more than 2% unter the charge limit and it's not charging, start
+                    if (newStatus.getBatteryLevel() < newStatus.getChargeLimit() + 2) {
+                        if (newStatus.getBatteryLevel() < teslaCommunicator.getBatteryLevel() + 5)
+                            logger.info("  Starting charging...");
+                        teslaCommunicator.startCharging();
+                    } else {
+                        logger.info("  Allowing for rounding errors, the battery is full.");
+                    }
                 }
             }
 
@@ -66,6 +72,11 @@ public class DifferentialChargingManager implements IChargingManager {
                 wasAtSolarmaxArray = false;
             }
         }
+
+        status = newStatus;
     }
 
+    public DifferentialChargingManagerStatus getStatus() {
+        return status;
+    }
 }

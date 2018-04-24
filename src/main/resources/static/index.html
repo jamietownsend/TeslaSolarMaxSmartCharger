@@ -1,0 +1,89 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.js"></script>
+</head>
+
+<body>
+<canvas id="myChart" width="100" height="100"></canvas>
+<script language="JavaScript1.5">
+        // Return a number with commas as thousands separators
+        var numberWithCommas = function(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+        var thousandsAsK = function(x) {
+            return x.toString().replace(/000/, "k");
+        };
+
+        // get the values from the server
+        //let url = 'status.json';
+        let url = '/chargingManager/status';
+
+        fetch(url)
+            .then(res => res.json())
+            .then((out) => {
+                console.log('Checkout this JSON! ', out);
+
+                var dataPackSolarmax = [out.generatedPower, 0];
+                var dataPackTesla = [0, out.teslaPowerDraw];
+                var dataPackBuffer = [0, out.powerBuffer];
+
+                var ctx = document.getElementById("myChart");
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ["Solarmax", "Tesla"],
+                        datasets: [{
+                            id: 'SolarMax',
+                            label: 'SolarMax',
+                            data: dataPackSolarmax,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Tesla',
+                            data: dataPackTesla,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Buffer',
+                            data: dataPackBuffer,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255,99,132,1)',
+                            borderWidth: 1
+                        }
+                        ]
+                    },
+                    options: {
+                        legend: {display: false},
+                        scales: {
+                            xAxes: [{
+                                gridLines: { display: false },
+                                ticks: {
+                                    fontSize: 32
+                                }
+                            }],
+                            yAxes: [{
+                                stacked: true,
+                                ticks: {
+                                    beginAtZero:true,
+                                    callback: function(value) { return thousandsAsK(value) +"W"; },
+                                    fontSize: 32
+                                }
+                            }]
+                        },
+                        title: {
+                            display: true,
+                            fontSize: 32,
+                            text: out.updatedAt
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error(err));
+
+</script>
+</body>
+</html>

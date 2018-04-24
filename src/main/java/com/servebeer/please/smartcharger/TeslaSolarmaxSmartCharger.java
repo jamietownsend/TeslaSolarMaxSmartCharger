@@ -10,11 +10,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-class TeslaSolarmaxSmartCharger {
+public class TeslaSolarmaxSmartCharger {
 
     private static final Logger log = LoggerFactory.getLogger(TeslaSolarmaxSmartCharger.class);
     //private static IChargingManager chargingManager = new DifferentialChargingManager();
-    private static IChargingManager chargingManager = new DifferentialChargingManager();
+    private static DifferentialChargingManager chargingManager = new DifferentialChargingManager();
 
     @Value("${teslaUserEmailAddress}")
     private String teslaUserEmailAddress;
@@ -45,6 +45,10 @@ class TeslaSolarmaxSmartCharger {
             log.error(e.getMessage());
         }
 
+    }
+
+    public static DifferentialChargingManager getDifferentialChargingManager() {
+        return chargingManager;
     }
 
 }

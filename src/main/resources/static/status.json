@@ -1,0 +1,10 @@
+{
+  "generatedPower": 0,
+  "powerBuffer": 2000,
+  "updatedAt": "2017-05-07 21:30:44",
+  "teslaPowerDraw": 6291,
+  "batteryLevel": 69,
+  "chargeLimit": 90,
+  "charging": false,
+  "locatedAtSolarmaxArray": true
+}
