@@ -29,13 +29,11 @@ package com.servebeer.please.smartcharger.locator;
 
 import com.servebeer.please.tesla_client.GpsLocation;
 
-import java.lang.*;
-
 class DistanceCalculator {
     /**
      * @param gpsLocation1
      * @param gpsLocation2
-     * @return the number of kilometers a location is away from the Solarmax Array (here hard coded)
+     * @return the number of kilometers a location is away from the SolarMax Array (here hard coded)
      */
     public static double distance(GpsLocation gpsLocation1, GpsLocation gpsLocation2) {
         // call the real function with the location of the Solarmax Array and the unit Kilometers
@@ -48,9 +46,9 @@ class DistanceCalculator {
         dist = Math.acos(dist);
         dist = rad2deg(dist);
         dist = dist * 60 * 1.1515;
-        if (unit == "K") {
+        if ("K".equals(unit)) {
             dist = dist * 1.609344;
-        } else if (unit == "N") {
+        } else if ("N".equals(unit)) {
             dist = dist * 0.8684;
         }
 

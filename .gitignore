@@ -13,3 +13,4 @@ buildNumber.properties
 .project
 .idea
 *.iml
+/nbactions.xml

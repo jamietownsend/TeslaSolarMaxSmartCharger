@@ -6,9 +6,16 @@ import com.servebeer.please.tesla_client.generated.handler.ApiException;
 
 public class VehicleLocator {
 
-    public static boolean isLocatedAtSolarmaxArray(TeslaCommunicator teslaCommunicator, SolarmaxArrayCommunicator solarmaxArrayCommunicator) throws ApiException {
+    /**
+     * determines if the vehicle is within 100 metres of the SolarMax Array.
+     *
+     * @param teslaCommunicator
+     * @return
+     * @throws ApiException
+     */
+    public static boolean isLocatedAtSolarmaxArray(TeslaCommunicator teslaCommunicator) throws ApiException {
 
         // if it's less than 100 metres away, assume it's at the Solarmax location
-        return DistanceCalculator.distance(teslaCommunicator.getGpsLocation(), solarmaxArrayCommunicator.getGpsLocation()) < 0.1;
+        return DistanceCalculator.distance(teslaCommunicator.getGpsLocation(), SolarmaxArrayCommunicator.getGpsLocation()) < 0.1;
     }
 }

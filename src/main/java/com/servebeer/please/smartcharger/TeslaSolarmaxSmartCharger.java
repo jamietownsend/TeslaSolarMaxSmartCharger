@@ -14,7 +14,7 @@ public class TeslaSolarmaxSmartCharger {
 
     private static final Logger log = LoggerFactory.getLogger(TeslaSolarmaxSmartCharger.class);
     //private static IChargingManager chargingManager = new DifferentialChargingManager();
-    private static DifferentialChargingManager chargingManager = new DifferentialChargingManager();
+    private static final DifferentialChargingManager chargingManager = new DifferentialChargingManager();
 
     @Value("${teslaUserEmailAddress}")
     private String teslaUserEmailAddress;
@@ -28,7 +28,6 @@ public class TeslaSolarmaxSmartCharger {
      * every 5 minutes, switch on or off charging as required
      */
     @Scheduled(fixedRate = 300000)
-    //@Scheduled(fixedRate = 60000)
     public void configureCharging() {
         try {
             if (teslaCommunicator == null) {
@@ -38,8 +37,11 @@ public class TeslaSolarmaxSmartCharger {
             SolarmaxArrayCommunicator solarmaxArrayCommunicator = new SolarmaxArrayCommunicator();
 
             log.info("Configuring charging...");
-            chargingManager.autoconfigureCharging(teslaCommunicator, solarmaxArrayCommunicator);
 
+            // if overnight Charging doesn't apply, call autoconfigureCharging
+            if (!chargingManager.overnightCharging(teslaCommunicator)) {
+                chargingManager.autoconfigureCharging(teslaCommunicator, solarmaxArrayCommunicator);
+            }
 
         } catch (ApiException e) {
             log.error(e.getMessage());

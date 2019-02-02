@@ -3,19 +3,19 @@ package com.servebeer.please.smartcharger.manager;
 import com.servebeer.please.tesla_client.TeslaCommunicator;
 import com.servebeer.please.tesla_client.generated.handler.ApiException;
 
-import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * if the car is located near the SolarMax and the SolarMax is generating power, charge at the maximum rate
+ * if the car is located near the SolarMax and the SolarMax is generating power,
+ * charge at the maximum rate
  */
 public class SimpleChargingManager implements IChargingManager {
 
-    Logger logger = Logger.getLogger(IChargingManager.class.getName());
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(SimpleChargingManager.class);
 
     Boolean isCharging = null;
 
     int minimumPowerToCharge = 8500;
-
 
     @Override
     public void autoconfigureCharging(TeslaCommunicator teslaCommunicator, SolarmaxArrayCommunicator solarmaxArrayCommunicator) throws ApiException {
@@ -25,17 +25,17 @@ public class SimpleChargingManager implements IChargingManager {
         // {
         // if SolarMax is not generating
         int currentlyGeneratedPower = solarmaxArrayCommunicator.getCurrentlyGeneratedPower();
-        logger.info("  SolarMax is currently generating: " + currentlyGeneratedPower);
-        logger.info("  Required to charge: " + minimumPowerToCharge);
+        log.info("  SolarMax is currently generating: " + currentlyGeneratedPower);
+        log.info("  Required to charge: " + minimumPowerToCharge);
         if (currentlyGeneratedPower < minimumPowerToCharge) {
             if (isCharging == null || isCharging) {
-                logger.info("  Stopping charging...");
+                log.info("  Stopping charging...");
                 teslaCommunicator.stopCharging();
                 isCharging = false;
             }
         } else {
             if (isCharging == null || !isCharging) {
-                logger.info("Starting charging...");
+                log.info("Starting charging...");
                 teslaCommunicator.startCharging();
                 isCharging = true;
             }
